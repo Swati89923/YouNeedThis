@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submit Feedback | Feedback Platform</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <h2>Submit Feedback</h2>
+    <div>
+        <button onclick="goBack()">Back</button>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- FEEDBACK FORM -->
+    <div class="card">
+        <h3>Give Your Feedback</h3>
+
+        <textarea id="comment" placeholder="Write your feedback here..."></textarea>
+
+        <select id="rating">
+            <option value="">Select Rating</option>
+            <option value="1">⭐ 1</option>
+            <option value="2">⭐ 2</option>
+            <option value="3">⭐ 3</option>
+            <option value="4">⭐ 4</option>
+            <option value="5">⭐ 5</option>
+        </select>
+
+        <button onclick="submitFeedback()">Submit Feedback</button>
+        <p id="msg"></p>
+    </div>
+
+</div>
+
+<script src="js/feedback.js"></script>
+</body>
+</html>

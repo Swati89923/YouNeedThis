@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Projects | Feedback Platform</title>
+    <link rel="stylesheet" href="css/projects.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <h2>Developer Projects</h2>
+    <div>
+        <button onclick="goDashboard()">Dashboard</button>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- CREATE PROJECT -->
+    <div class="card">
+        <h3>Create New Project</h3>
+
+        <input type="text" id="title" placeholder="Project Title">
+        <textarea id="description" placeholder="Project Description"></textarea>
+        <input type="number" id="price" placeholder="Pay per feedback">
+
+        <button onclick="createProject()">Create Project</button>
+        <p id="msg"></p>
+    </div>
+
+    <!-- MY PROJECTS -->
+    <div class="card">
+        <h3>My Projects</h3>
+        <ul id="projectList">
+            <li>Loading projects...</li>
+        </ul>
+    </div>
+
+</div>
+
+<script src="js/projects.js"></script>
+</body>
+</html>

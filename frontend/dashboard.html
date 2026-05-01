@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback Platform Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>Feedback Platform Dashboard</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <h3>Welcome 🎉</h3>
+        <p>You are successfully logged in.</p>
+    </div>
+
+    <div class="card">
+        <h3>Your Info</h3>
+        <p><b>Email:</b> <span id="userEmail">Loading...</span></p>
+        <p><b>Role:</b> <span id="userRole">Loading...</span></p>
+        <p> <span class="badge badge-role" id="roleBadge">ROLE</span></p>
+
+    </div>
+
+    <div id="developerSection" class="card hidden">
+    <h3>Developer Panel</h3>
+    <ul>
+        <li><a href="projects.html">Create / My Projects</a></li>
+        <li><a href="project-feedback.html">View Project Feedback</a></li>
+    </ul>
+   </div>
+
+
+ <div id="reviewerSection" class="card hidden">
+    <h3>Reviewer Panel</h3>
+    <ul>
+        <li><a href="reviewer-projects.html">Available Projects</a></li>
+        <li><a href="my-feedback.html">My Feedback</a></li>
+
+    </ul>
+</div>
+
+
+</div>
+
+<script src="js/dashboard.js"></script>
+</body>
+</html>
