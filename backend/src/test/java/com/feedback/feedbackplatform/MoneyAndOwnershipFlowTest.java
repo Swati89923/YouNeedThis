@@ -34,7 +34,7 @@ class MoneyAndOwnershipFlowTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"T\",\"email\":\"" + email
                                 + "\",\"password\":\"password123\",\"role\":\"" + role + "\"}"))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
         String body = mvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
@@ -52,7 +52,7 @@ class MoneyAndOwnershipFlowTest {
                 .content("{\"projectName\":\"App\",\"description\":\"Try it\","
                         + "\"projectLink\":\"https://example.com\",\"reviewersNeeded\":" + reviewers
                         + ",\"payPerReview\":" + pay + "}"), devToken)
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return json.readTree(body).get("id").asLong();
     }
@@ -86,7 +86,7 @@ class MoneyAndOwnershipFlowTest {
         String body = "{\"name\":\"D\",\"email\":\"" + email
                 + "\",\"password\":\"password123\",\"role\":\"REVIEWER\"}";
         mvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
         mvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isConflict());
     }
@@ -96,7 +96,7 @@ class MoneyAndOwnershipFlowTest {
         String dev = register("DEVELOPER");
         String rev = register("REVIEWER");
         long project = createProject(dev, 1, 100);
-        call(post("/payments/deposit/" + project), dev).andExpect(status().isOk());
+        call(post("/payments/deposit/" + project), dev).andExpect(status().isCreated());
 
         for (String token : new String[]{dev, rev}) {
             call(post("/payments/release/" + project)
@@ -132,7 +132,7 @@ class MoneyAndOwnershipFlowTest {
         // a different developer cannot fund it
         call(post("/payments/deposit/" + project), otherDev).andExpect(status().isForbidden());
 
-        call(post("/payments/deposit/" + project), dev).andExpect(status().isOk());
+        call(post("/payments/deposit/" + project), dev).andExpect(status().isCreated());
         call(post("/payments/deposit/" + project), dev).andExpect(status().isConflict());
 
         call(post("/projects/" + project + "/assign"), rev).andExpect(status().isOk());
@@ -146,7 +146,7 @@ class MoneyAndOwnershipFlowTest {
         String rev = register("REVIEWER");
         String stranger = register("REVIEWER");
         long project = createProject(dev, 1, 75);
-        call(post("/payments/deposit/" + project), dev).andExpect(status().isOk());
+        call(post("/payments/deposit/" + project), dev).andExpect(status().isCreated());
 
         String feedbackBody = "{\"rating\":4,\"comment\":\"Nice but slow on first load\"}";
 
@@ -162,7 +162,7 @@ class MoneyAndOwnershipFlowTest {
 
         String saved = call(post("/api/v1/feedback/project/" + project)
                 .contentType(MediaType.APPLICATION_JSON).content(feedbackBody), rev)
-                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
         long feedbackId = json.readTree(saved).get("id").asLong();
 
         call(post("/api/v1/feedback/project/" + project).contentType(MediaType.APPLICATION_JSON)

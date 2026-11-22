@@ -9,4 +9,8 @@ public interface FeedbackProjectRepository extends JpaRepository<FeedbackProject
 
     // 🔥 Reviewer ke liye sirf available projects
     List<FeedbackProject> findByReviewersNeededGreaterThan(int count);
+
+    List<FeedbackProject> findByCreatedByIdOrderByIdDesc(Long developerId);
+
+    List<FeedbackProject> findByReviewersNeededGreaterThanOrderByIdDesc(int count);
 }

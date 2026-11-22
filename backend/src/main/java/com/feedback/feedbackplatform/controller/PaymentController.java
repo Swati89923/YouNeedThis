@@ -1,6 +1,9 @@
 package com.feedback.feedbackplatform.controller;
 
-import com.feedback.feedbackplatform.model.EscrowTransaction;
+import com.feedback.feedbackplatform.dto.ProjectDto;
+import com.feedback.feedbackplatform.service.ProjectQueryService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.feedback.feedbackplatform.model.User;
 import com.feedback.feedbackplatform.service.PaymentService;
 import com.feedback.feedbackplatform.service.UserService;
@@ -14,26 +17,31 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final UserService userService;
+    private final ProjectQueryService projectQueryService;
 
     public PaymentController(
             PaymentService paymentService,
-            UserService userService
+            UserService userService,
+            ProjectQueryService projectQueryService
     ) {
         this.paymentService = paymentService;
         this.userService = userService;
+        this.projectQueryService = projectQueryService;
     }
 
     // 🔐 DEVELOPER: deposit escrow for a project
     @PreAuthorize("hasRole('DEVELOPER')")
     @PostMapping("/deposit/{projectId}")
-    public EscrowTransaction deposit(
+    public ResponseEntity<ProjectDto> deposit(
             @PathVariable Long projectId,
             Authentication authentication
     ) {
         User developer =
                 userService.getByEmail(authentication.getName());
 
-        return paymentService.depositToEscrow(projectId, developer);
+        paymentService.depositToEscrow(projectId, developer);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(projectQueryService.get(projectId, developer));
     }
 
     // ⚙️ SYSTEM/ADMIN: release payment to reviewer wallet

@@ -1,14 +1,16 @@
 package com.feedback.feedbackplatform.controller;
 
 import com.feedback.feedbackplatform.dto.CreateFeedbackRequest;
-import com.feedback.feedbackplatform.model.Feedback;
+import com.feedback.feedbackplatform.dto.FeedbackDto;
 import com.feedback.feedbackplatform.model.User;
+import com.feedback.feedbackplatform.repository.FeedbackRepository;
 import com.feedback.feedbackplatform.service.FeedbackService;
 import com.feedback.feedbackplatform.service.UserService;
-import com.feedback.feedbackplatform.repository.FeedbackRepository;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,26 +33,75 @@ public class FeedbackController {
         this.feedbackRepository = feedbackRepository;
     }
 
-    // 🔹 REVIEWER: submit feedback
+    private User caller(Authentication authentication) {
+        return userService.getByEmail(authentication.getName());
+    }
+
+    /** Reviewer: submit feedback for a project I took. */
     @PreAuthorize("hasRole('REVIEWER')")
     @PostMapping("/project/{projectId}")
-    public Feedback submitFeedback(
+    @Transactional
+    public ResponseEntity<FeedbackDto> submitFeedback(
             @PathVariable Long projectId,
             @RequestBody CreateFeedbackRequest request,
             Authentication authentication
     ) {
-        User reviewer = userService.getByEmail(authentication.getName());
-        return feedbackService.submitFeedback(projectId, request, reviewer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(FeedbackDto.from(
+                feedbackService.submitFeedback(projectId, request, caller(authentication))));
     }
 
-    // 🔹 DEVELOPER: view feedback of a project
+    /** Reviewer: everything I submitted. */
+    @PreAuthorize("hasRole('REVIEWER')")
+    @GetMapping("/mine")
+    @Transactional(readOnly = true)
+    public List<FeedbackDto> myFeedback(Authentication authentication) {
+        return feedbackRepository
+                .findByReviewerIdOrderByIdDesc(caller(authentication).getId())
+                .stream().map(FeedbackDto::from).toList();
+    }
+
+    /** Developer: feedback on one of my projects. */
     @PreAuthorize("hasRole('DEVELOPER')")
     @GetMapping("/project/{projectId}")
-    public List<Feedback> getFeedbackForProject(
+    @Transactional(readOnly = true)
+    public List<FeedbackDto> getFeedbackForProject(
             @PathVariable Long projectId,
             Authentication authentication
     ) {
-        User developer = userService.getByEmail(authentication.getName());
-        return feedbackService.getFeedbackForProject(projectId, developer);
+        return feedbackService.getFeedbackForProject(projectId, caller(authentication))
+                .stream().map(FeedbackDto::from).toList();
+    }
+
+    /** Developer: feedback on all my projects, newest first. */
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @GetMapping("/received")
+    @Transactional(readOnly = true)
+    public List<FeedbackDto> receivedFeedback(Authentication authentication) {
+        return feedbackRepository
+                .findByProjectCreatedByIdOrderByIdDesc(caller(authentication).getId())
+                .stream().map(FeedbackDto::from).toList();
+    }
+
+    /** Developer: accept feedback, which pays the reviewer from escrow. */
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @PostMapping("/{feedbackId}/approve")
+    @Transactional
+    public FeedbackDto approve(
+            @PathVariable Long feedbackId,
+            Authentication authentication
+    ) {
+        return FeedbackDto.from(
+                feedbackService.approveFeedback(feedbackId, caller(authentication)));
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @PostMapping("/{feedbackId}/reject")
+    @Transactional
+    public FeedbackDto reject(
+            @PathVariable Long feedbackId,
+            Authentication authentication
+    ) {
+        return FeedbackDto.from(
+                feedbackService.rejectFeedback(feedbackId, caller(authentication)));
     }
 }

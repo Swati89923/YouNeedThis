@@ -6,6 +6,9 @@ import com.feedback.feedbackplatform.dto.LoginResponse;
 import com.feedback.feedbackplatform.model.User;
 import com.feedback.feedbackplatform.service.UserService;
 import com.feedback.feedbackplatform.security.JwtUtil;
+import com.feedback.feedbackplatform.dto.UserProfileResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,13 +25,19 @@ public class AuthController {
 
     // 🔓 REGISTER (PUBLIC)
     @PostMapping("/register")
-    public User register(@RequestBody RegisterRequest request) {
-        return userService.registerUser(
+    public ResponseEntity<UserProfileResponse> register(
+            @RequestBody RegisterRequest request
+    ) {
+        User user = userService.registerUser(
                 request.getName(),
                 request.getEmail(),
                 request.getPassword(),
                 request.getRole()
         );
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                new UserProfileResponse(
+                        user.getId(), user.getName(), user.getEmail(),
+                        user.getRole(), null, user.getAvatarUrl()));
     }
 
     // 🔓 LOGIN (PUBLIC)
@@ -48,6 +57,7 @@ public class AuthController {
         return new LoginResponse(
                 token,
                 user.getEmail(),
+                user.getName(),
                 user.getRole().name()
         );
     }

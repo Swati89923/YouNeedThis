@@ -2,75 +2,102 @@ package com.feedback.feedbackplatform.service;
 
 import com.feedback.feedbackplatform.dto.DeveloperDashboardResponse;
 import com.feedback.feedbackplatform.dto.ReviewerDashboardResponse;
+import com.feedback.feedbackplatform.model.EscrowTransaction;
+import com.feedback.feedbackplatform.model.Feedback;
+import com.feedback.feedbackplatform.model.FeedbackProject;
+import com.feedback.feedbackplatform.model.FeedbackStatus;
 import com.feedback.feedbackplatform.model.User;
-import com.feedback.feedbackplatform.repository.*;
+import com.feedback.feedbackplatform.repository.EscrowTransactionRepository;
+import com.feedback.feedbackplatform.repository.FeedbackProjectRepository;
+import com.feedback.feedbackplatform.repository.FeedbackRepository;
+import com.feedback.feedbackplatform.repository.ProjectAssignmentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class AnalyticsService {
 
     private final FeedbackProjectRepository projectRepository;
     private final FeedbackRepository feedbackRepository;
     private final EscrowTransactionRepository escrowRepository;
+    private final ProjectAssignmentRepository assignmentRepository;
+    private final WalletService walletService;
 
     public AnalyticsService(
             FeedbackProjectRepository projectRepository,
             FeedbackRepository feedbackRepository,
-            EscrowTransactionRepository escrowRepository
+            EscrowTransactionRepository escrowRepository,
+            ProjectAssignmentRepository assignmentRepository,
+            WalletService walletService
     ) {
         this.projectRepository = projectRepository;
         this.feedbackRepository = feedbackRepository;
         this.escrowRepository = escrowRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.walletService = walletService;
     }
 
-    // 👨‍💻 Developer dashboard
+    /** Only the developer's own projects, feedback and escrow. */
     public DeveloperDashboardResponse developerDashboard(User developer) {
+        List<FeedbackProject> projects =
+                projectRepository.findByCreatedByIdOrderByIdDesc(developer.getId());
+        List<Feedback> feedbacks =
+                feedbackRepository.findByProjectCreatedByIdOrderByIdDesc(developer.getId());
 
-        int totalProjects =
-                projectRepository.findAll()
-                        .stream()
-                        .filter(p -> p.getCreatedBy().getId().equals(developer.getId()))
-                        .toList()
-                        .size();
+        int pending = (int) feedbacks.stream()
+                .filter(f -> f.getStatus() == FeedbackStatus.PENDING).count();
 
-        int totalFeedbacks =
-                feedbackRepository.findAll().size();
+        int spent = 0;
+        int remaining = 0;
+        for (FeedbackProject p : projects) {
+            EscrowTransaction escrow = escrowRepository.findByProjectId(p.getId()).orElse(null);
+            if (escrow != null) {
+                spent += escrow.getTotalAmount() - escrow.getRemainingAmount();
+                remaining += escrow.getRemainingAmount();
+            }
+        }
 
-        int totalSpent =
-                escrowRepository.findAll()
-                        .stream()
-                        .filter(e -> e.getDeveloper().getId().equals(developer.getId()))
-                        .mapToInt(e -> e.getTotalAmount() - e.getRemainingAmount())
-                        .sum();
-
-        double avgRating =
-                feedbackRepository.findAll()
-                        .stream()
-                        .mapToInt(f -> f.getRating())
-                        .average()
-                        .orElse(0.0);
+        double avg = feedbacks.stream().mapToInt(Feedback::getRating).average().orElse(0.0);
 
         return new DeveloperDashboardResponse(
-                totalProjects,
-                totalFeedbacks,
-                totalSpent,
-                avgRating
+                projects.size(),
+                feedbacks.size(),
+                pending,
+                spent,
+                remaining,
+                Math.round(avg * 10.0) / 10.0
         );
     }
 
-    // 🧑‍🔧 Reviewer dashboard
     public ReviewerDashboardResponse reviewerDashboard(User reviewer) {
+        List<Feedback> mine = feedbackRepository.findByReviewerIdOrderByIdDesc(reviewer.getId());
 
-        int feedbackCount =
-                feedbackRepository.findByReviewerId(reviewer.getId()).size();
+        int approved = 0;
+        int pending = 0;
+        int earnings = 0;
+        for (Feedback f : mine) {
+            if (f.getStatus() == FeedbackStatus.APPROVED) {
+                approved++;
+                earnings += f.getProject().getPayPerReview();
+            } else if (f.getStatus() == FeedbackStatus.PENDING) {
+                pending++;
+            }
+        }
 
-        int earnings =
-                feedbackCount * 100; // simulated (can link escrow later)
+        int active = assignmentRepository
+                .findByReviewerIdOrderByIdDesc(reviewer.getId()).size() - mine.size();
 
         return new ReviewerDashboardResponse(
-                feedbackCount,
+                mine.size(),
+                approved,
+                pending,
+                Math.max(active, 0),
                 reviewer.getReviewerScore(),
-                earnings
+                earnings,
+                walletService.getOrCreateWallet(reviewer).getBalance()
         );
     }
 }

@@ -1,6 +1,7 @@
 package com.feedback.feedbackplatform.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 public class FeedbackProject {
@@ -11,6 +12,7 @@ public class FeedbackProject {
 
     private String projectName;
 
+    @Column(length = 2000)
     private String description;
 
     private String projectLink;
@@ -18,6 +20,12 @@ public class FeedbackProject {
     private int reviewersNeeded;
 
     private int payPerReview;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
     @ManyToOne
     @JoinColumn(name = "created_by")

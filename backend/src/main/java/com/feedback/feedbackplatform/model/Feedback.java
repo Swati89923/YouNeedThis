@@ -1,6 +1,7 @@
 package com.feedback.feedbackplatform.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 public class Feedback {
@@ -11,7 +12,10 @@ public class Feedback {
 
     private int rating;
 
+    @Column(length = 2000)
     private String comment;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     private FeedbackStatus status = FeedbackStatus.PENDING;
@@ -23,6 +27,10 @@ public class Feedback {
     private FeedbackProject project;
 
     // getters
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     public Long getId() {
         return id;
     }

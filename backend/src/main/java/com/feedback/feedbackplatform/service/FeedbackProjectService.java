@@ -48,6 +48,11 @@ public class FeedbackProjectService {
             throw ApiException.badRequest(
                     "Reviewers needed and pay per review must be at least 1");
         }
+        if (request.getProjectName().length() > 120
+                || request.getDescription().length() > 2000) {
+            throw ApiException.badRequest(
+                    "Project name (max 120) or description (max 2000) is too long");
+        }
         String link = request.getProjectLink();
         if (link != null && !link.isBlank() && !link.startsWith("https://")) {
             throw ApiException.badRequest("Project link must start with https://");

@@ -1,6 +1,7 @@
 package com.feedback.feedbackplatform.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 public class FeedbackComment {
@@ -10,7 +11,14 @@ public class FeedbackComment {
     private Long id;
 
     // 💬 comment text
+    @Column(length = 2000)
     private String message;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
     // 👤 kisne comment kiya (DEV / REVIEWER)
     @ManyToOne

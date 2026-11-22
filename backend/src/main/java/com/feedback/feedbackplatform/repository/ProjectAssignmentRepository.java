@@ -7,4 +7,6 @@ public interface ProjectAssignmentRepository
         extends JpaRepository<ProjectAssignment, Long> {
 
     boolean existsByReviewerIdAndProjectId(Long reviewerId, Long projectId);
+
+    java.util.List<ProjectAssignment> findByReviewerIdOrderByIdDesc(Long reviewerId);
 }

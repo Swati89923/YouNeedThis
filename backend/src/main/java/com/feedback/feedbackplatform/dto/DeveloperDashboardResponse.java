@@ -1,14 +1,12 @@
 package com.feedback.feedbackplatform.dto;
 
-public class DeveloperDashboardResponse {
-
-    private int totalProjects;
-
-    public DeveloperDashboardResponse(int totalProjects, int totalFeedbacks, int totalSpent, double avgRating) {
-        this.totalProjects = totalProjects;
-    }
-
-    public int getTotalProjects() {
-        return totalProjects;
-    }
+/** Numbers for the developer dashboard, scoped to the developer's own projects. */
+public record DeveloperDashboardResponse(
+        int totalProjects,
+        int totalFeedbacks,
+        int pendingReview,
+        int totalSpent,
+        int escrowRemaining,
+        double avgRating
+) {
 }
