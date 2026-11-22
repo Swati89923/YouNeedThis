@@ -6,6 +6,8 @@ import com.feedback.feedbackplatform.model.User;
 import com.feedback.feedbackplatform.repository.EscrowTransactionRepository;
 import com.feedback.feedbackplatform.repository.FeedbackProjectRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.feedback.feedbackplatform.exception.ApiException;
 
 @Service
 public class PaymentService {
@@ -31,12 +33,20 @@ public class PaymentService {
     }
 
     // 🔐 Developer deposits money
+    @Transactional
     public EscrowTransaction depositToEscrow(
             Long projectId,
             User developer
     ) {
         FeedbackProject project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> ApiException.notFound("Project not found"));
+
+        if (!project.getCreatedBy().getId().equals(developer.getId())) {
+            throw ApiException.forbidden("This is not your project");
+        }
+        if (escrowRepository.findByProjectId(projectId).isPresent()) {
+            throw ApiException.conflict("This project is already funded");
+        }
 
         int totalAmount =
                 project.getReviewersNeeded() * project.getPayPerReview();
@@ -51,6 +61,7 @@ public class PaymentService {
     }
 
     // 💸 Release payment AFTER feedback approval
+    @Transactional
     public void releasePayment(
             Long projectId,
             int amount,
@@ -58,10 +69,10 @@ public class PaymentService {
     ) {
         EscrowTransaction escrow = escrowRepository
                 .findByProjectId(projectId)
-                .orElseThrow(() -> new RuntimeException("Escrow not found"));
+                .orElseThrow(() -> ApiException.conflict("Project has no escrow"));
 
         if (escrow.getRemainingAmount() < amount) {
-            throw new RuntimeException("Insufficient escrow balance");
+            throw ApiException.conflict("Insufficient escrow balance");
         }
 
         // 1️⃣ Escrow se paisa kam

@@ -8,8 +8,11 @@ import java.util.List;
 
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
-    // 🔍 admin: pending feedbacks
     List<Feedback> findByStatus(FeedbackStatus status);
+
     List<Feedback> findByReviewerId(Long reviewerId);
+
     List<Feedback> findByProjectId(Long projectId);
+
+    boolean existsByReviewerIdAndProjectId(Long reviewerId, Long projectId);
 }

@@ -6,6 +6,7 @@ import com.feedback.feedbackplatform.model.User;
 import com.feedback.feedbackplatform.service.FeedbackProjectService;
 import com.feedback.feedbackplatform.service.UserService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class FeedbackProjectController {
     }
 
     // ✅ CREATE PROJECT (Developer)
+    @PreAuthorize("hasRole('DEVELOPER')")
     @PostMapping
     public FeedbackProject createProject(
             @RequestBody CreateProjectRequest request,
@@ -44,6 +46,7 @@ public class FeedbackProjectController {
     }
 
     // ✅ ASSIGN PROJECT (Reviewer)
+    @PreAuthorize("hasRole('REVIEWER')")
     @PostMapping("/{projectId}/assign")
     public String assignProject(
             @PathVariable Long projectId,

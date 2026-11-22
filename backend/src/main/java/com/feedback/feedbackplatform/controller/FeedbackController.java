@@ -47,8 +47,10 @@ public class FeedbackController {
     @PreAuthorize("hasRole('DEVELOPER')")
     @GetMapping("/project/{projectId}")
     public List<Feedback> getFeedbackForProject(
-            @PathVariable Long projectId
+            @PathVariable Long projectId,
+            Authentication authentication
     ) {
-        return feedbackRepository.findByProjectId(projectId);
+        User developer = userService.getByEmail(authentication.getName());
+        return feedbackService.getFeedbackForProject(projectId, developer);
     }
 }

@@ -1,5 +1,6 @@
 package com.feedback.feedbackplatform.service;
 
+import com.feedback.feedbackplatform.exception.ApiException;
 import com.feedback.feedbackplatform.exception.InvalidCredentialsException;
 import com.feedback.feedbackplatform.model.Role;
 import com.feedback.feedbackplatform.model.User;
@@ -26,8 +27,20 @@ public class UserService {
     // ✅ REGISTER
     public User registerUser(String name, String email, String password, Role role) {
 
+        if (name == null || name.isBlank()
+                || email == null || email.isBlank()
+                || password == null || password.length() < 8) {
+            throw ApiException.badRequest(
+                    "Name, email and a password of at least 8 characters are required");
+        }
+        if (role != Role.DEVELOPER && role != Role.REVIEWER) {
+            // ADMIN accounts are never created through public sign-up
+            throw ApiException.badRequest("Role must be DEVELOPER or REVIEWER");
+        }
+        email = email.trim().toLowerCase();
+
         userRepository.findByEmail(email).ifPresent(u -> {
-            throw new RuntimeException("Email already registered");
+            throw ApiException.conflict("Email already registered");
         });
 
         User user = new User();
@@ -42,7 +55,8 @@ public class UserService {
     // ✅ LOGIN
     public User login(String email, String password) {
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(
+                        email == null ? "" : email.trim().toLowerCase())
                 .orElseThrow(() ->
                         new InvalidCredentialsException("Invalid email or password"));
 
@@ -57,7 +71,7 @@ public class UserService {
     public User getByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found with email: " + email));
+                        ApiException.notFound("User not found"));
     }
 
     // 🔥 UPDATE PROFILE (NAME + AVATAR)

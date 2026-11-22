@@ -14,5 +14,5 @@ spring:
     show-sql: true
 
 jwt:
-  secret: dev-secret-key
+  secret: dev-only-secret-change-me-0123456789abcdef
   expiration: 86400000
