@@ -1,50 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Feedback Platform</title>
-    <link rel="stylesheet" href="css/style.css">
-    
-</head>
-<body>
-
-<div class="container">
-    <h1>Feedback Platform</h1>
-    <p class="subtitle" id="formTitle">Login to continue</p>
-
-    <!-- LOGIN FORM -->
-    <div id="loginForm">
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button type="button" onclick="login()">Login</button>
-
-    </div>
-
-    <!-- SIGNUP FORM -->
-    <div id="signupForm" style="display:none;">
-        <input type="text" id="name" placeholder="Full Name">
-        <input type="email" id="signupEmail" placeholder="Email">
-        <input type="password" id="signupPassword" placeholder="Password">
-
-        <select id="role">
-            <option value="">Select Role</option>
-            <option value="DEVELOPER">Developer</option>
-            <option value="REVIEWER">Reviewer</option>
-        </select>
-
-       <button type="button" onclick="signup()">Create Account</button>
-
-    </div>
-
-    <p class="error" id="error"></p>
-
-    <p class="switch">
-        <span id="switchText" onclick="toggleForm()">
-            New here? Create account
-        </span>
-    </p>
-</div>
-
-<script src="js/auth.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Feedback Exchange Platform: get verified product feedback, and get paid for giving it." />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Feedback Exchange</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
