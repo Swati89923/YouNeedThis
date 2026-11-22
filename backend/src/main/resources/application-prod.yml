@@ -23,3 +23,7 @@ app:
     # comma separated list of frontend origins, e.g. https://feedback-app.vercel.app
     allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
   seed-demo-data: false
+  admin:
+    # optional: creates one ADMIN account at startup (password min 8 chars)
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
