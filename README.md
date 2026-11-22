@@ -4,6 +4,20 @@ A two-sided feedback marketplace that connects **developers/companies** with **v
 
 ---
 
+## 🌐 Live
+
+| What | Link |
+| --- | --- |
+| Web app (Vercel) | https://youneedthis-iota.vercel.app |
+| API (Railway) | https://backend-production-1530d2ea.up.railway.app |
+| API docs (Swagger) | https://backend-production-1530d2ea.up.railway.app/swagger-ui.html |
+
+Create an account on the sign-up form and choose Developer or Reviewer. The demo logins listed under "Run it locally" only exist on a local run.
+
+The web app is built from `frontend/` on Vercel with `VITE_API_URL` pointing at the Railway API. The API runs from `backend/` on Railway with a Railway PostgreSQL database.
+
+---
+
 ## 🚀 Project Overview
 
 Modern developers struggle to get **actionable and trustworthy feedback** for their apps and websites.  
