@@ -15,4 +15,14 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     List<Feedback> findByProjectId(Long projectId);
 
     boolean existsByReviewerIdAndProjectId(Long reviewerId, Long projectId);
+
+    List<Feedback> findByReviewerIdOrderByIdDesc(Long reviewerId);
+
+    List<Feedback> findByProjectIdOrderByIdDesc(Long projectId);
+
+    List<Feedback> findByProjectCreatedByIdOrderByIdDesc(Long developerId);
+
+    long countByProjectId(Long projectId);
+
+    long countByProjectIdAndStatus(Long projectId, FeedbackStatus status);
 }

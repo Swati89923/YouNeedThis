@@ -71,6 +71,9 @@ public class FeedbackService {
         if (request.getComment() == null || request.getComment().isBlank()) {
             throw ApiException.badRequest("Comment is required");
         }
+        if (request.getComment().length() > 2000) {
+            throw ApiException.badRequest("Comment is too long (max 2000 characters)");
+        }
 
         Feedback feedback = new Feedback();
         feedback.setRating(request.getRating());

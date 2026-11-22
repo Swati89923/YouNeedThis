@@ -1,9 +1,10 @@
 package com.feedback.feedbackplatform.controller;
 
-import com.feedback.feedbackplatform.model.Notification;
+import com.feedback.feedbackplatform.dto.NotificationDto;
 import com.feedback.feedbackplatform.model.User;
 import com.feedback.feedbackplatform.service.NotificationService;
 import com.feedback.feedbackplatform.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,10 +26,24 @@ public class NotificationController {
     }
 
     @GetMapping
-    public List<Notification> myNotifications(Authentication authentication) {
-        String email = authentication.getName();
-        User user = userService.getByEmail(email);
+    public List<NotificationDto> myNotifications(Authentication authentication) {
+        User user = userService.getByEmail(authentication.getName());
+        return notificationService.getMyNotifications(user)
+                .stream().map(NotificationDto::from).toList();
+    }
 
-        return notificationService.getMyNotifications(user);
+    @PostMapping("/read-all")
+    public ResponseEntity<Void> markAllRead(Authentication authentication) {
+        notificationService.markAllRead(userService.getByEmail(authentication.getName()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/read")
+    public ResponseEntity<Void> markRead(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        notificationService.markRead(id, userService.getByEmail(authentication.getName()));
+        return ResponseEntity.noContent().build();
     }
 }
