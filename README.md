@@ -92,7 +92,13 @@ To ensure feedback is real and effort-based, the platform analyzes:
 - Comparison with reviewer’s past submissions
 
 ### ✔ Final Review Score
-Each review is scored using a rule-based system:
+Each submission has to meet these rules before it can be paid:
+
+- one review per reviewer per project, only for projects the reviewer took
+- a rating from 1 to 5 and a written comment (the app asks for at least 20 characters)
+- the developer who owns the project approves or rejects it; approval pays the reviewer from escrow, rejection pays nothing
+- every approved review adds 10 points to the reviewer's reputation score
+- developer and reviewer can talk about a review in a conversation thread
 
 
 
@@ -151,6 +157,7 @@ The same checks run in GitHub Actions on every pull request (`.github/workflows/
 | `SPRING_PROFILES_ACTIVE` | always | `dev` (default) or `prod` |
 | `JWT_SECRET` | prod | Signing secret, at least 32 characters |
 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | prod | PostgreSQL connection |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | prod, optional | Creates one admin account at startup (password at least 8 characters) |
 | `CORS_ALLOWED_ORIGINS` | prod | Comma separated frontend origins, for example `https://my-app.vercel.app`. Defaults to `*` |
 
 ### Frontend
@@ -179,8 +186,16 @@ All endpoints except sign up and login need `Authorization: Bearer <token>`.
 | `GET /api/v1/feedback/received`, `GET /api/v1/feedback/project/{id}` | developer | Feedback on my projects |
 | `POST /api/v1/feedback/{id}/approve`, `.../reject` | developer (owner) | Decide. Approve pays the reviewer from escrow |
 | `GET`, `POST /feedback-comments/{feedbackId}` | the two people involved | Conversation about a feedback |
-| `GET /wallet` | any | Wallet balance |
+| `GET /wallet`, `POST /wallet/withdraw` | any, reviewer | Wallet balance, withdraw (payout is simulated) |
 | `GET /api/v1/dashboard/developer`, `.../reviewer` | matching role | Dashboard numbers |
 | `GET /notifications`, `POST /notifications/read-all` | any | Notifications |
 
 Errors look like `{"message": "...", "timestamp": "..."}` with a 400, 401, 403, 404 or 409 status.
+
+## ☁️ Deploy the frontend to Vercel
+
+1. Import the repository in Vercel and set **Root Directory** to `frontend`. `frontend/vercel.json` already sets the Vite build and rewrites every path to `index.html`, so links such as `/projects/3` survive a refresh.
+2. Add the environment variable `VITE_API_URL` with your backend URL (no trailing slash).
+3. On the backend host set `CORS_ALLOWED_ORIGINS` to the Vercel URL, for example `https://your-app.vercel.app`. Without it the browser blocks API calls from the new origin.
+
+CLI alternative: `cd frontend && vercel --prod`.
