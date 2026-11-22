@@ -94,3 +94,93 @@ To ensure feedback is real and effort-based, the platform analyzes:
 ### ✔ Final Review Score
 Each review is scored using a rule-based system:
 
+
+
+---
+
+## 🧱 Architecture
+
+| Part | Tech | Folder |
+| --- | --- | --- |
+| API | Spring Boot 3, Spring Security (JWT), Spring Data JPA | [`backend/`](backend) |
+| Web app | React 18, TypeScript, Vite, React Router | [`frontend/`](frontend) |
+| Database | H2 in memory for local work, PostgreSQL in production | |
+
+The web app talks to the API over HTTPS with a bearer token. There are no cookies.
+
+## ▶️ Run it locally
+
+You need Java 17+, Maven (or the included `mvnw`) and Node 20+.
+
+```bash
+# 1. API on http://localhost:8080 (dev profile, in-memory H2, demo data included)
+cd backend
+mvn spring-boot:run
+
+# 2. Web app on http://localhost:5173
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Demo logins (dev profile only, recreated on every start):
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Developer | `developer@demo.dev` | `Demo@1234` |
+| Reviewer | `reviewer@demo.dev` | `Demo@1234` |
+
+Swagger UI for the API: http://localhost:8080/swagger-ui.html
+
+## ✅ Checks
+
+```bash
+cd backend  && mvn verify                                  # integration tests
+cd frontend && npm run typecheck && npm test && npm run build
+```
+
+The same checks run in GitHub Actions on every pull request (`.github/workflows/ci.yml`).
+
+## ⚙️ Configuration
+
+### Backend
+
+| Variable | Used when | Meaning |
+| --- | --- | --- |
+| `SPRING_PROFILES_ACTIVE` | always | `dev` (default) or `prod` |
+| `JWT_SECRET` | prod | Signing secret, at least 32 characters |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | prod | PostgreSQL connection |
+| `CORS_ALLOWED_ORIGINS` | prod | Comma separated frontend origins, for example `https://my-app.vercel.app`. Defaults to `*` |
+
+### Frontend
+
+| Variable | Meaning |
+| --- | --- |
+| `VITE_API_URL` | Base URL of the API, no trailing slash. Defaults to `http://localhost:8080` |
+
+## 🔌 API overview
+
+All endpoints except sign up and login need `Authorization: Bearer <token>`.
+
+| Method and path | Who | What |
+| --- | --- | --- |
+| `POST /api/v1/auth/register`, `POST /api/v1/auth/login` | anyone | Create an account, get a token |
+| `GET /users/me` | any | Current profile |
+| `POST /projects` | developer | Create a project |
+| `GET /projects/mine` | developer | My projects |
+| `POST /payments/deposit/{projectId}` | developer (owner) | Fund the escrow once |
+| `GET /projects` | reviewer | Funded projects with open slots |
+| `POST /projects/{id}/assign` | reviewer | Take a project |
+| `GET /projects/assigned` | reviewer | Projects I took |
+| `GET /projects/{id}` | any | One project |
+| `POST /api/v1/feedback/project/{id}` | reviewer | Submit feedback (one per project) |
+| `GET /api/v1/feedback/mine` | reviewer | My feedback |
+| `GET /api/v1/feedback/received`, `GET /api/v1/feedback/project/{id}` | developer | Feedback on my projects |
+| `POST /api/v1/feedback/{id}/approve`, `.../reject` | developer (owner) | Decide. Approve pays the reviewer from escrow |
+| `GET`, `POST /feedback-comments/{feedbackId}` | the two people involved | Conversation about a feedback |
+| `GET /wallet` | any | Wallet balance |
+| `GET /api/v1/dashboard/developer`, `.../reviewer` | matching role | Dashboard numbers |
+| `GET /notifications`, `POST /notifications/read-all` | any | Notifications |
+
+Errors look like `{"message": "...", "timestamp": "..."}` with a 400, 401, 403, 404 or 409 status.
