@@ -64,6 +64,11 @@ export const api = {
 
   // ----- money, stats, notifications -----
   wallet: () => request<{ balance: number }>("/wallet"),
+  withdraw: (amount: number) =>
+    request<{ balance: number }>("/wallet/withdraw", {
+      method: "POST",
+      body: { amount },
+    }),
   developerStats: () => request<DeveloperStats>("/api/v1/dashboard/developer"),
   reviewerStats: () => request<ReviewerStats>("/api/v1/dashboard/reviewer"),
   notifications: () => request<AppNotification[]>("/notifications"),
