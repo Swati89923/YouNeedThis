@@ -122,9 +122,20 @@ class ReviewFlowApiTest {
 
         assertEquals(60, read(call(get("/wallet"), rev)).get("balance").asInt());
 
+        // withdrawals: cannot take more than the balance, a developer cannot withdraw
+        call(post("/wallet/withdraw").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":100}"), rev).andExpect(status().isBadRequest());
+        call(post("/wallet/withdraw").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":0}"), rev).andExpect(status().isBadRequest());
+        call(post("/wallet/withdraw").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":10}"), dev).andExpect(status().isForbidden());
+        assertEquals(35, read(call(post("/wallet/withdraw").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"amount\":25}"), rev).andExpect(status().isOk())).get("balance").asInt());
+
         JsonNode reviewerStats = read(call(get("/api/v1/dashboard/reviewer"), rev));
         assertEquals(1, reviewerStats.get("approvedFeedbacks").asInt());
         assertEquals(60, reviewerStats.get("totalEarnings").asInt());
+        assertEquals(35, reviewerStats.get("walletBalance").asInt());
         assertEquals(10, reviewerStats.get("reviewerScore").asInt());
 
         JsonNode devStats = read(call(get("/api/v1/dashboard/developer"), dev));
