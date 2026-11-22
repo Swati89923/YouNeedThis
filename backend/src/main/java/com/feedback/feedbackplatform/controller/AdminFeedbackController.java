@@ -3,7 +3,9 @@ package com.feedback.feedbackplatform.controller;
 import com.feedback.feedbackplatform.model.Feedback;
 import com.feedback.feedbackplatform.model.FeedbackStatus;
 import com.feedback.feedbackplatform.service.FeedbackService;
+import com.feedback.feedbackplatform.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,9 +16,14 @@ import java.util.List;
 public class AdminFeedbackController {
 
     private final FeedbackService feedbackService;
+    private final UserService userService;
 
-    public AdminFeedbackController(FeedbackService feedbackService) {
+    public AdminFeedbackController(
+            FeedbackService feedbackService,
+            UserService userService
+    ) {
         this.feedbackService = feedbackService;
+        this.userService = userService;
     }
 
     // 📌 ADMIN: get all pending feedbacks
@@ -27,15 +34,23 @@ public class AdminFeedbackController {
 
     // ✅ ADMIN: approve feedback
     @PostMapping("/{feedbackId}/approve")
-    public String approveFeedback(@PathVariable Long feedbackId) {
-        feedbackService.approveFeedback(feedbackId);
+    public String approveFeedback(
+            @PathVariable Long feedbackId,
+            Authentication authentication
+    ) {
+        feedbackService.approveFeedback(
+                feedbackId, userService.getByEmail(authentication.getName()));
         return "Feedback approved";
     }
 
     // ❌ ADMIN: reject feedback
     @PostMapping("/{feedbackId}/reject")
-    public String rejectFeedback(@PathVariable Long feedbackId) {
-        feedbackService.rejectFeedback(feedbackId);
+    public String rejectFeedback(
+            @PathVariable Long feedbackId,
+            Authentication authentication
+    ) {
+        feedbackService.rejectFeedback(
+                feedbackId, userService.getByEmail(authentication.getName()));
         return "Feedback rejected";
     }
 }

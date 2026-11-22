@@ -5,6 +5,7 @@ import com.feedback.feedbackplatform.model.User;
 import com.feedback.feedbackplatform.service.PaymentService;
 import com.feedback.feedbackplatform.service.UserService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +24,7 @@ public class PaymentController {
     }
 
     // 🔐 DEVELOPER: deposit escrow for a project
+    @PreAuthorize("hasRole('DEVELOPER')")
     @PostMapping("/deposit/{projectId}")
     public EscrowTransaction deposit(
             @PathVariable Long projectId,
@@ -35,6 +37,7 @@ public class PaymentController {
     }
 
     // ⚙️ SYSTEM/ADMIN: release payment to reviewer wallet
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/release/{projectId}")
     public String releasePayment(
             @PathVariable Long projectId,

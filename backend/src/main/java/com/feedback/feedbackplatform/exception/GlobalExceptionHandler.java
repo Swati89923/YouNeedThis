@@ -1,7 +1,10 @@
 package com.feedback.feedbackplatform.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -10,29 +13,44 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 🔴 Business / Runtime exceptions
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponse> handleRuntimeException(
-            RuntimeException ex
-    ) {
-        ErrorResponse error = new ErrorResponse(
-                ex.getMessage(),
-                LocalDateTime.now()
-        );
+    private static final Logger log =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handleApi(ApiException ex) {
+        return build(ex.getStatus(), ex.getMessage());
     }
 
-    // 🔥 Fallback for all other exceptions
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(
-            Exception ex
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(
+            InvalidCredentialsException ex
     ) {
-        ErrorResponse error = new ErrorResponse(
-                "Internal Server Error",
-                LocalDateTime.now()
-        );
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
 
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex
+    ) {
+        return build(HttpStatus.FORBIDDEN,
+                "You are not allowed to do this");
+    }
+
+    // kept for the older services that still throw plain RuntimeException
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        log.error("Unhandled error", ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal Server Error");
+    }
+
+    private ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {
+        return new ResponseEntity<>(
+                new ErrorResponse(message, LocalDateTime.now()), status);
     }
 }

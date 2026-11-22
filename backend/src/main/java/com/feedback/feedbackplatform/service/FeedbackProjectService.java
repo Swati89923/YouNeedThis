@@ -7,6 +7,9 @@ import com.feedback.feedbackplatform.model.User;
 import com.feedback.feedbackplatform.repository.FeedbackProjectRepository;
 import com.feedback.feedbackplatform.repository.ProjectAssignmentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.feedback.feedbackplatform.exception.ApiException;
+import com.feedback.feedbackplatform.repository.EscrowTransactionRepository;
 import com.feedback.feedbackplatform.service.NotificationService;
 
 import java.util.List;
@@ -17,15 +20,18 @@ public class FeedbackProjectService {
     private final FeedbackProjectRepository repository;
     private final ProjectAssignmentRepository assignmentRepository;
     private final NotificationService notificationService;
+    private final EscrowTransactionRepository escrowRepository;
 
     public FeedbackProjectService(
             FeedbackProjectRepository repository,
             ProjectAssignmentRepository assignmentRepository,
-            NotificationService notificationService
+            NotificationService notificationService,
+            EscrowTransactionRepository escrowRepository
     ) {
         this.repository = repository;
         this.assignmentRepository = assignmentRepository;
         this.notificationService = notificationService;
+        this.escrowRepository = escrowRepository;
     }
 
 
@@ -34,6 +40,19 @@ public class FeedbackProjectService {
             CreateProjectRequest request,
             User developer
     ) {
+        if (request.getProjectName() == null || request.getProjectName().isBlank()
+                || request.getDescription() == null || request.getDescription().isBlank()) {
+            throw ApiException.badRequest("Project name and description are required");
+        }
+        if (request.getReviewersNeeded() < 1 || request.getPayPerReview() < 1) {
+            throw ApiException.badRequest(
+                    "Reviewers needed and pay per review must be at least 1");
+        }
+        String link = request.getProjectLink();
+        if (link != null && !link.isBlank() && !link.startsWith("https://")) {
+            throw ApiException.badRequest("Project link must start with https://");
+        }
+
         FeedbackProject project = new FeedbackProject();
         project.setProjectName(request.getProjectName());
         project.setDescription(request.getDescription());
@@ -51,13 +70,19 @@ public class FeedbackProjectService {
     }
 
     // ✅ ASSIGN PROJECT TO REVIEWER
+    @Transactional
     public String assignProject(Long projectId, User reviewer) {
 
         FeedbackProject project = repository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> ApiException.notFound("Project not found"));
+
+        if (escrowRepository.findByProjectId(projectId).isEmpty()) {
+            throw ApiException.conflict(
+                    "The developer has not funded this project yet");
+        }
 
         if (project.getReviewersNeeded() <= 0) {
-            throw new RuntimeException("No reviewers needed now");
+            throw ApiException.conflict("No reviewer slots left on this project");
         }
 
         boolean alreadyAssigned =
@@ -66,7 +91,7 @@ public class FeedbackProjectService {
                 );
 
         if (alreadyAssigned) {
-            throw new RuntimeException("Already selected this project");
+            throw ApiException.conflict("You already took this project");
         }
 
         // 🔽 reduce reviewer count

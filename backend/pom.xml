@@ -67,6 +67,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- LOCAL DEV / TESTS (dev profile uses an in-memory H2 database) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- SWAGGER -->
         <dependency>
             <groupId>org.springdoc</groupId>

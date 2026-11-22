@@ -44,8 +44,10 @@ public class FeedbackCommentController {
     // 🔹 VIEW all comments for a feedback
     @GetMapping("/{feedbackId}")
     public List<FeedbackComment> getComments(
-            @PathVariable Long feedbackId
+            @PathVariable Long feedbackId,
+            Authentication authentication
     ) {
-        return commentRepository.findByFeedbackId(feedbackId);
+        User viewer = userService.getByEmail(authentication.getName());
+        return commentService.getComments(feedbackId, viewer);
     }
 }

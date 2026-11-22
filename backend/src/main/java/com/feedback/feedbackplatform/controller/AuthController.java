@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     // 🔓 REGISTER (PUBLIC)
@@ -38,7 +40,7 @@ public class AuthController {
                 request.getPassword()
         );
 
-        String token = JwtUtil.generateToken(
+        String token = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getRole().name()
         );
